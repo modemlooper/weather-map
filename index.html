@@ -1,105 +1,76 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset='utf-8'/>
-    <title>Leaflet Animation - Xweather Raster Maps</title>
-    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>MapsGL SDK - Using MapsGL with Leaflet</title>
+    <meta name="description" content="Use MapsGL with a Leaflet map." /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+ 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" crossorigin=""></script>
+ 
+    <link href="https://cdn.aerisapi.com/sdk/js/mapsgl/latest/aerisweather.mapsgl.css" rel="stylesheet" />
+    <script defer src="https://cdn.aerisapi.com/sdk/js/mapsgl/latest/aerisweather.mapsgl.js"></script>
+    
+ 
     <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-        #map {
-            width: 100%;
-            height: 100%;
-        }
+    body, html {
+        margin: 0;
+        padding: 0;
+    }
+    #map {
+        height: 100vh;
+        width: 100%;
+    }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
-          integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
-          crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
-            integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
-            crossorigin=""></script>
+ 
 </head>
 <body>
+    <div id="map"></div>
  
-<div id="map"></div>
- 
-<script>
-    let map;
- 
-    const frameCount = 10; // total intervals
-    const startMinutes = -300; // start time offset relative to now, where negative means past
-    const endMinutes = 0;
- 
-    const AERIS_ID = '8Mkt4g6km81gXs6tkxbU9';
-    const AERIS_KEY = 'FKymBxfkBt5LXctTP50Pls7EfqPp3aQ7Qwbw72hW';
-    const NUM_COLORS = '256'; // set to empty string for true color png
- 
-    const layers = [
-        // add more layers!
-        'radar',
-    ];
- 
-    function getTileServer(stepNumber, layers, opacity = 0) {
-        const interval = (endMinutes - startMinutes) / frameCount;
-        const timeOffset = startMinutes + interval * stepNumber;
-        const layerStr = layers.join(",");
- 
-        const url = `https://maps{s}.aerisapi.com/${AERIS_ID}_${AERIS_KEY}/${layerStr}/{z}/{x}/{y}/${timeOffset}min.png${NUM_COLORS}`;
- 
-        return L.tileLayer(url, {
-            subdomains : '1234',
-            attribution: '&copy;Xweather',
-            opacity: opacity
-        });
-    }
- 
-    window.addEventListener('load', () => {
-        const southWest = L.latLng(-43.63, 113.34);
-        const northEast = L.latLng(-10.67, 153.57);
-        const bounds = L.latLngBounds(southWest, northEast);
+    <script>
+        window.addEventListener('load', () => {
 
-        map = L.map('map', {
+            const southWest = L.latLng(-43.63, 113.34);
+            const northEast = L.latLng(-10.67, 153.57);
+            const bounds = L.latLngBounds(southWest, northEast);
+ 
+            // Create the Leaflet map instance
+            const map = L.map('map', {
             maxBounds: bounds,
             maxBoundsViscosity: 1.0,
-            minZoom: 4
+            minZoom: 4,
+            type: 'vector',
         }).setView([-24.743957, 132.1482763], 5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
  
-        const frames = [];
-        for (let i = 0; i < frameCount; i+= 1) {
-            const opacity = (i === 0 ) ? 1 : 0;
-            frames.push(getTileServer(i, layers, opacity).addTo(map));
-        }
+            // Set up the MapsGL account
+            const account = new aerisweather.mapsgl.Account('8Mkt4g6km81gXs6tkxbU9', 'FKymBxfkBt5LXctTP50Pls7EfqPp3aQ7Qwbw72hW');
  
-        const waitTime = 5000;
+            // Create the Leaflet map Controller
+            const controller = new aerisweather.mapsgl.LeafletMapController(map, { account });
  
-        const stepTime = 1000;
+            controller.on('load', () => {
+
+                // animation timeline
+                controller.timeline.setStartDateUsingOffset(0);    
+                controller.timeline.setEndDateUsingOffset(1 * 3600 * 1000, controller.timeline.startDate);
+                controller.timeline.duration = 2;
+                controller.timeline.endDelay = 0;
+
+                // weather layers
+                controller.addWeatherLayer('radar');
+                controller.addWeatherLayer('alerts-outline', {
+                    paint: {
+                        opacity: 0.5
+                    }
+                });
+            });
+        });
+    </script>
  
-        let currentOffset = 0;
-        let previousOffset = currentOffset;
- 
-        setTimeout(() => {
-            setInterval(() => {
-                previousOffset = currentOffset;
-                currentOffset += 1;
-                if (currentOffset === frames.length - 1) {
-                    currentOffset = 0;
-                }
-                frames[previousOffset].setOpacity(0)
-                frames[currentOffset].setOpacity(1)
- 
-            }, stepTime)
-        }, waitTime)
- 
- 
-    })
- 
- 
-</script>
 </body>
 </html>
