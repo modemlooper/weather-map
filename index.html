@@ -32,6 +32,9 @@
     <script>
         window.addEventListener('load', () => {
 
+            const tiles = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            const titlesDark = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+
             const southWest = L.latLng(-47.63, 103.34);
             const northEast = L.latLng(-6.67, 163.57);
             const bounds = L.latLngBounds(southWest, northEast);
@@ -44,7 +47,7 @@
             maxZoom: 8,
             type: 'vector',
         }).setView([-24.743957, 132.1482763], 5);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        L.tileLayer(titlesDark, {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
  
