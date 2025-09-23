@@ -55,7 +55,7 @@
             const controller = new aerisweather.mapsgl.LeafletMapController(map, { account,
                 animate: {
                     start: new Date(Date.now() - 0 * 3600 * 1000),
-                    end: new Date(Date.now() + 1 * 3600 * 1000)
+                    end: new Date(Date.now() + 4 * 3600 * 1000)
                 }
              });
  
@@ -64,8 +64,8 @@
                 // animation timeline
                 // controller.timeline.setStartDateUsingOffset(-24 * 3600 * 1000);  
                 // controller.timeline.setEndDateUsingOffset(4 * 3600 * 1000, controller.timeline.startDate);
-                controller.delay = 0
-                controller.timeline.duration = 2;
+                controller.timeline.delay = 0
+                controller.timeline.duration = 4;
                 controller.timeline.endDelay = 0;
       
                 // weather layers
@@ -75,6 +75,8 @@
                         opacity: 0.5
                     }
                 });
+
+                controller.timeline.play();
             });
         });
     </script>
