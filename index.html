@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'/>
+    <title>Leaflet Animation - Xweather Raster Maps</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+          integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+          crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+            integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+            crossorigin=""></script>
+</head>
+<body>
+ 
+<div id="map"></div>
+ 
+<script>
+    let map;
+ 
+    const frameCount = 10; // total intervals
+    const startMinutes = -300; // start time offset relative to now, where negative means past
+    const endMinutes = 0;
+ 
+    const AERIS_ID = '8Mkt4g6km81gXs6tkxbU9';
+    const AERIS_KEY = 'DU30Ys319xnZ9Zd3tfcWrwGIzQp0jC4da9l2tIP6';
+    const NUM_COLORS = '256'; // set to empty string for true color png
+ 
+    const layers = [
+        // add more layers!
+        'radar',
+    ];
+ 
+    function getTileServer(stepNumber, layers, opacity = 0) {
+        const interval = (endMinutes - startMinutes) / frameCount;
+        const timeOffset = startMinutes + interval * stepNumber;
+        const layerStr = layers.join(",");
+ 
+        const url = `https://maps{s}.aerisapi.com/${AERIS_ID}_${AERIS_KEY}/${layerStr}/{z}/{x}/{y}/${timeOffset}min.png${NUM_COLORS}`;
+ 
+        return L.tileLayer(url, {
+            subdomains : '1234',
+            attribution: '&copy;Xweather',
+            opacity: opacity
+        });
+    }
+ 
+    window.addEventListener('load', () => {
+        const southWest = L.latLng(-43.63, 113.34);
+        const northEast = L.latLng(-10.67, 153.57);
+        const bounds = L.latLngBounds(southWest, northEast);
+
+        map = L.map('map', {
+            maxBounds: bounds,
+            maxBoundsViscosity: 1.0,
+            minZoom: 4
+        }).setView([-24.743957, 132.1482763], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+ 
+        const frames = [];
+        for (let i = 0; i < frameCount; i+= 1) {
+            const opacity = (i === 0 ) ? 1 : 0;
+            frames.push(getTileServer(i, layers, opacity).addTo(map));
+        }
+ 
+        const waitTime = 5000;
+ 
+        const stepTime = 1000;
+ 
+        let currentOffset = 0;
+        let previousOffset = currentOffset;
+ 
+        setTimeout(() => {
+            setInterval(() => {
+                previousOffset = currentOffset;
+                currentOffset += 1;
+                if (currentOffset === frames.length - 1) {
+                    currentOffset = 0;
+                }
+                frames[previousOffset].setOpacity(0)
+                frames[currentOffset].setOpacity(1)
+ 
+            }, stepTime)
+        }, waitTime)
+ 
+ 
+    })
+ 
+ 
+</script>
+</body>
+</html>
