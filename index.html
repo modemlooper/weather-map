@@ -32,15 +32,16 @@
     <script>
         window.addEventListener('load', () => {
 
-            const southWest = L.latLng(-43.63, 113.34);
-            const northEast = L.latLng(-10.67, 153.57);
+            const southWest = L.latLng(-47.63, 103.34);
+            const northEast = L.latLng(-6.67, 163.57);
             const bounds = L.latLngBounds(southWest, northEast);
  
             // Create the Leaflet map instance
             const map = L.map('map', {
             maxBounds: bounds,
             maxBoundsViscosity: 1.0,
-            minZoom: 4,
+            minZoom: 5,
+            maxZoom: 8,
             type: 'vector',
         }).setView([-24.743957, 132.1482763], 5);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -51,16 +52,22 @@
             const account = new aerisweather.mapsgl.Account('8Mkt4g6km81gXs6tkxbU9', 'FKymBxfkBt5LXctTP50Pls7EfqPp3aQ7Qwbw72hW');
  
             // Create the Leaflet map Controller
-            const controller = new aerisweather.mapsgl.LeafletMapController(map, { account });
+            const controller = new aerisweather.mapsgl.LeafletMapController(map, { account,
+                animate: {
+                    start: new Date(Date.now() - 0 * 3600 * 1000),
+                    end: new Date(Date.now() + 1 * 3600 * 1000)
+                }
+             });
  
             controller.on('load', () => {
 
                 // animation timeline
-                controller.timeline.setStartDateUsingOffset(0);    
-                controller.timeline.setEndDateUsingOffset(1 * 3600 * 1000, controller.timeline.startDate);
+                // controller.timeline.setStartDateUsingOffset(-24 * 3600 * 1000);  
+                // controller.timeline.setEndDateUsingOffset(4 * 3600 * 1000, controller.timeline.startDate);
+                controller.delay = 0
                 controller.timeline.duration = 2;
                 controller.timeline.endDelay = 0;
-
+      
                 // weather layers
                 controller.addWeatherLayer('radar');
                 controller.addWeatherLayer('alerts-outline', {
