@@ -9,7 +9,14 @@
  
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" crossorigin=""></script>
- 
+
+    <!-- MapLibre GL JS for vector tile rendering -->
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    
+    <!-- MapLibre GL Leaflet plugin -->
+    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
+
     <link href="https://cdn.aerisapi.com/sdk/js/mapsgl/latest/aerisweather.mapsgl.css" rel="stylesheet" />
     <script defer src="https://cdn.aerisapi.com/sdk/js/mapsgl/latest/aerisweather.mapsgl.js"></script>
     
@@ -30,10 +37,7 @@
     <div id="map"></div>
  
     <script>
-        window.addEventListener('load', () => {
-
-            const tiles = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            const titlesDark = "http://services.arcgisonline.com/arcgis/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+        window.addEventListener('load', async () => {
 
             const southWest = L.latLng(-47.63, 103.34);
             const northEast = L.latLng(-6.67, 163.57);
@@ -41,15 +45,31 @@
  
             // Create the Leaflet map instance
             const map = L.map('map', {
-            maxBounds: bounds,
-            maxBoundsViscosity: 1.0,
-            minZoom: 5,
-            maxZoom: 8,
-            type: 'vector',
-        }).setView([-24.743957, 132.1482763], 5);
-        L.tileLayer(titlesDark, {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+                maxBounds: bounds,
+                maxBoundsViscosity: 1.0,
+                minZoom: 5,
+                maxZoom: 8,
+                type: 'vector',
+            }).setView([-24.743957, 132.1482763], 5);
+
+            // Load and use the custom style.json
+            try {
+                const response = await fetch('./style.json');
+                const style = await response.json();
+                
+                // Create MapLibre GL layer with custom style
+                const gl = L.maplibreGL({
+                    style: style,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+                
+            } catch (error) {
+                console.error('Error loading style.json:', error);
+                // Fallback to raster tiles if style.json fails to load
+                L.tileLayer("https://tiles.higginsstormchasing.com/data/openmaptiles/{z}/{x}/{y}", {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+            }
  
             // Set up the MapsGL account
             const account = new aerisweather.mapsgl.Account('8Mkt4g6km81gXs6tkxbU9', 'FKymBxfkBt5LXctTP50Pls7EfqPp3aQ7Qwbw72hW');
@@ -73,11 +93,11 @@
       
                 // weather layers
                 controller.addWeatherLayer('radar');
-                controller.addWeatherLayer('alerts-outline', {
-                    paint: {
-                        opacity: 0.5
-                    }
-                });
+                // controller.addWeatherLayer('alerts-outline', {
+                //     paint: {
+                //         opacity: 0.5
+                //     }
+                // });
 
                 controller.timeline.play();
             });
