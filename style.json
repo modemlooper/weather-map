@@ -25,6 +25,10 @@
     "openmaptiles": {
       "type": "vector",
       "url": "https://tiles.higginsstormchasing.com/data/openmaptiles.json"
+    },
+    "localities": {
+      "type": "geojson",
+      "data": "./geojson/australian-suburbs.geojson"
     }
   },
   "sprite": "https://tiles.higginsstormchasing.com/styles/dark-matter/sprite",
@@ -61,6 +65,24 @@
       "paint": {
         "fill-antialias": false,
         "fill-color": "rgb(27 ,27 ,29)"
+      }
+    },
+    {
+      "id": "localities-fill",
+      "type": "fill",
+      "source": "localities",
+      "paint": {
+        "fill-color": "#0088ff",
+        "fill-opacity": 0.3
+      }
+    },
+    {
+      "id": "localities-outline",
+      "type": "line",
+      "source": "localities",
+      "paint": {
+        "line-color": "#00aaff",
+        "line-width": 2
       }
     },
     {
