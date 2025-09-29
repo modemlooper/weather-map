@@ -3,19 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>MapsGL SDK - Using MapsGL with Leaflet</title>
-    <meta name="description" content="Use MapsGL with a Leaflet map." /> 
+    <title>MapsGL SDK - Using MapsGL with MapLibre</title>
+    <meta name="description" content="Use MapsGL with a MapLibre GL map." /> 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
  
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js" crossorigin=""></script>
-
     <!-- MapLibre GL JS for vector tile rendering -->
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-    
-    <!-- MapLibre GL Leaflet plugin -->
-    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
 
     <link href="https://cdn.aerisapi.com/sdk/js/mapsgl/latest/aerisweather.mapsgl.css" rel="stylesheet" />
     <script defer src="https://cdn.aerisapi.com/sdk/js/mapsgl/latest/aerisweather.mapsgl.js"></script>
@@ -39,55 +33,60 @@
     <script>
         window.addEventListener('load', async () => {
 
-            const southWest = L.latLng(-47.63, 103.34);
-            const northEast = L.latLng(-6.67, 163.57);
-            const bounds = L.latLngBounds(southWest, northEast);
- 
-            // Create the Leaflet map instance
-            const map = L.map('map', {
-                maxBounds: bounds,
-                maxBoundsViscosity: 1.0,
-                minZoom: 5,
-                maxZoom: 8,
-                type: 'vector',
-            }).setView([-24.743957, 132.1482763], 5);
-
             // Load and use the custom style.json
+            let style;
             try {
                 const response = await fetch('./style.json');
-                const style = await response.json();
-                
-                // Create MapLibre GL layer with custom style
-                const gl = L.maplibreGL({
-                    style: style,
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
-                
+                style = await response.json();
             } catch (error) {
                 console.error('Error loading style.json:', error);
-                // Fallback to raster tiles if style.json fails to load
-                L.tileLayer("https://tiles.higginsstormchasing.com/data/openmaptiles/{z}/{x}/{y}", {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
+                // Fallback style
+                style = {
+                    version: 8,
+                    sources: {
+                        'raster-tiles': {
+                            type: 'raster',
+                            tiles: ['https://tiles.higginsstormchasing.com/data/openmaptiles/{z}/{x}/{y}'],
+                            tileSize: 256
+                        }
+                    },
+                    layers: [{
+                        id: 'simple-tiles',
+                        type: 'raster',
+                        source: 'raster-tiles'
+                    }]
+                };
             }
- 
+
+            // Create MapLibre GL map directly
+            const map = new maplibregl.Map({
+                container: 'map',
+                style: style,
+                center: [132.1482763, -24.743957],
+                zoom: 2,
+                minZoom: 2,
+                maxZoom: 6,
+                maxBounds: [[103.34, -47.63], [163.57, -6.67]]
+            });
+
             // Set up the MapsGL account
             const account = new aerisweather.mapsgl.Account('8Mkt4g6km81gXs6tkxbU9', 'FKymBxfkBt5LXctTP50Pls7EfqPp3aQ7Qwbw72hW');
  
-            // Create the Leaflet map Controller
-            const controller = new aerisweather.mapsgl.LeafletMapController(map, { account,
+            // Create the MapLibre map Controller
+            const controller = new aerisweather.mapsgl.MaplibreMapController(map, { 
+                account,
                 animate: {
                     start: new Date(Date.now() - 0 * 3600 * 1000),
                     end: new Date(Date.now() + 4 * 3600 * 1000)
                 }
-             });
- 
-            controller.on('load', () => {
+            });
 
+            // Prevent animation restart on zoom events
+            let isTimelinePlaying = false;
+            
+            controller.on('load', () => {
                 // animation timeline
-                // controller.timeline.setStartDateUsingOffset(-24 * 3600 * 1000);  
-                // controller.timeline.setEndDateUsingOffset(4 * 3600 * 1000, controller.timeline.startDate);
-                controller.timeline.delay = 0
+                controller.timeline.delay = 0;
                 controller.timeline.duration = 4;
                 controller.timeline.endDelay = 0;
       
@@ -99,7 +98,41 @@
                 //     }
                 // });
 
+                // Start timeline and track state
                 controller.timeline.play();
+                isTimelinePlaying = true;
+                
+                // Listen for timeline events to track state
+                controller.timeline.on('play', () => {
+                    isTimelinePlaying = true;
+                });
+                
+                controller.timeline.on('pause', () => {
+                    isTimelinePlaying = false;
+                });
+                
+                controller.timeline.on('stop', () => {
+                    isTimelinePlaying = false;
+                });
+            });
+
+            // Prevent zoom events from interfering with timeline
+            map.on('zoomstart', () => {
+                // Don't restart timeline if it's already playing
+                if (isTimelinePlaying && controller.timeline) {
+                    // Temporarily pause during zoom to prevent conflicts
+                    controller.timeline.pause();
+                }
+            });
+
+            map.on('zoomend', () => {
+                // Resume timeline after zoom if it was playing
+                if (controller.timeline && !isTimelinePlaying) {
+                    setTimeout(() => {
+                        controller.timeline.play();
+                        isTimelinePlaying = true;
+                    }, 100);
+                }
             });
         });
     </script>
