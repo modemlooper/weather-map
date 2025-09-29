@@ -24,11 +24,28 @@
         height: 100vh;
         width: 100%;
     }
+    
+    #time-display {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 1000;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
     </style>
  
 </head>
 <body>
     <div id="map"></div>
+    <div id="time-display">Loading radar data...</div>
  
     <script>
         window.addEventListener('load', async () => {
@@ -76,64 +93,65 @@
             const controller = new aerisweather.mapsgl.MaplibreMapController(map, { 
                 account,
                 animate: {
-                    start: new Date(Date.now() - 0 * 3600 * 1000),
-                    end: new Date(Date.now() + 4 * 3600 * 1000)
+                    start: new Date(Date.now() - 1 * 3600 * 1000),
+                    end: new Date(Date.now() + 1 * 3600 * 1000)
                 }
             });
 
             // Prevent animation restart on zoom events
-            let isTimelinePlaying = false;
+            const timeDisplay = document.getElementById('time-display');
+            
+            // Function to format time display
+            function formatTime(date) {
+                return date.toLocaleString('en-AU', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZone: 'Australia/Sydney',
+                    timeZoneName: 'short'
+                });
+            }
             
             controller.on('load', () => {
                 // animation timeline
                 controller.timeline.delay = 0;
-                controller.timeline.duration = 4;
+                controller.timeline.duration = 6;
                 controller.timeline.endDelay = 0;
       
                 // weather layers
-                controller.addWeatherLayer('radar');
+                controller.addWeatherLayer('radar', {
+                    data: {
+                        quality: aerisweather.mapsgl.DataQuality.high,
+                        bounds: [[103.34, -47.63], [163.57, -6.67]]
+                    }
+                });
                 // controller.addWeatherLayer('alerts-outline', {
                 //     paint: {
                 //         opacity: 0.5
                 //     }
                 // });
 
+                // Update time display when timeline changes
+                controller.timeline.on('change:time', () => {
+                    const currentTime = controller.timeline.currentDate;
+                    if (currentTime) {
+                        timeDisplay.textContent = `${formatTime(currentTime)}`;
+                    }
+                });
+
                 // Start timeline and track state
                 controller.timeline.play();
-                isTimelinePlaying = true;
-                
-                // Listen for timeline events to track state
-                controller.timeline.on('play', () => {
-                    isTimelinePlaying = true;
-                });
-                
-                controller.timeline.on('pause', () => {
-                    isTimelinePlaying = false;
-                });
-                
-                controller.timeline.on('stop', () => {
-                    isTimelinePlaying = false;
-                });
-            });
-
-            // Prevent zoom events from interfering with timeline
-            map.on('zoomstart', () => {
-                // Don't restart timeline if it's already playing
-                if (isTimelinePlaying && controller.timeline) {
-                    // Temporarily pause during zoom to prevent conflicts
-                    controller.timeline.pause();
+      
+                // Initial time display
+                const initialTime = controller.timeline.currentDate || controller.timeline.startDate;
+                if (initialTime) {
+                    timeDisplay.textContent = `${formatTime(initialTime)}`;
                 }
             });
 
-            map.on('zoomend', () => {
-                // Resume timeline after zoom if it was playing
-                if (controller.timeline && !isTimelinePlaying) {
-                    setTimeout(() => {
-                        controller.timeline.play();
-                        isTimelinePlaying = true;
-                    }, 100);
-                }
-            });
+   
         });
     </script>
  
