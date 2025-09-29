@@ -116,6 +116,7 @@
             
             controller.on('load', () => {
                 // animation timeline
+                controller.timeline.autoplay = true;
                 controller.timeline.delay = 0;
                 controller.timeline.duration = 6;
                 controller.timeline.endDelay = 0;
@@ -127,21 +128,14 @@
                         bounds: [[103.34, -47.63], [163.57, -6.67]]
                     }
                 });
+
                 // controller.addWeatherLayer('alerts-outline', {
                 //     paint: {
                 //         opacity: 0.5
                 //     }
                 // });
 
-                // Update time display when timeline changes
-                controller.timeline.on('change:time', () => {
-                    const currentTime = controller.timeline.currentDate;
-                    if (currentTime) {
-                        timeDisplay.textContent = `${formatTime(currentTime)}`;
-                    }
-                });
-
-                // Start timeline and track state
+                // Start timeline
                 controller.timeline.play();
       
                 // Initial time display
