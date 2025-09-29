@@ -1,52 +1,56 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>MapsGL SDK - Using MapsGL with MapLibre</title>
-    <meta name="description" content="Use MapsGL with a MapLibre GL map." /> 
+    <meta name="description" content="Use MapsGL with a MapLibre GL map." />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
- 
+
     <!-- MapLibre GL JS for vector tile rendering -->
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 
     <link href="https://cdn.aerisapi.com/sdk/js/mapsgl/latest/aerisweather.mapsgl.css" rel="stylesheet" />
     <script defer src="https://cdn.aerisapi.com/sdk/js/mapsgl/latest/aerisweather.mapsgl.js"></script>
-    
- 
+
+
     <style>
-    body, html {
-        margin: 0;
-        padding: 0;
-    }
-    #map {
-        height: 100vh;
-        width: 100%;
-    }
-    
-    #time-display {
-        position: absolute;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 4px;
-        font-family: 'Arial', sans-serif;
-        font-size: 14px;
-        font-weight: bold;
-        z-index: 1000;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+
+        #time-display {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
     </style>
- 
+
 </head>
+
 <body>
     <div id="map"></div>
     <div id="time-display">Loading radar data...</div>
- 
+
     <script>
         window.addEventListener('load', async () => {
 
@@ -57,22 +61,22 @@
                 style = await response.json();
             } catch (error) {
                 console.error('Error loading style.json:', error);
-                // Fallback style
-                style = {
-                    version: 8,
-                    sources: {
-                        'raster-tiles': {
-                            type: 'raster',
-                            tiles: ['https://tiles.higginsstormchasing.com/data/openmaptiles/{z}/{x}/{y}'],
-                            tileSize: 256
-                        }
-                    },
-                    layers: [{
-                        id: 'simple-tiles',
-                        type: 'raster',
-                        source: 'raster-tiles'
-                    }]
-                };
+                // // Fallback style
+                // style = {
+                //     version: 8,
+                //     sources: {
+                //         'vector-tiles': {
+                //             type: 'vector',
+                //             tiles: ['https://tiles.higginsstormchasing.com/data/openmaptiles/{z}/{x}/{y}'],
+                //             tileSize: 256
+                //         }
+                //     },
+                //     layers: [{
+                //         id: 'simple-tiles',
+                //         type: 'fill',
+                //         source: 'vector-tiles'
+                //     }]
+                // };
             }
 
             // Create MapLibre GL map directly
@@ -80,7 +84,7 @@
                 container: 'map',
                 style: style,
                 center: [132.1482763, -24.743957],
-                zoom: 2,
+                zoom: 2,  // Start zoomed in more
                 minZoom: 2,
                 maxZoom: 12,
                 maxBounds: [[103.34, -47.63], [163.57, -6.67]]
@@ -88,9 +92,9 @@
 
             // Set up the MapsGL account
             const account = new aerisweather.mapsgl.Account('8Mkt4g6km81gXs6tkxbU9', 'FKymBxfkBt5LXctTP50Pls7EfqPp3aQ7Qwbw72hW');
- 
+
             // Create the MapLibre map Controller
-            const controller = new aerisweather.mapsgl.MaplibreMapController(map, { 
+            const controller = new aerisweather.mapsgl.MaplibreMapController(map, {
                 account,
                 animate: {
                     start: new Date(Date.now() - 1 * 3600 * 1000),
@@ -100,7 +104,7 @@
 
             // Prevent animation restart on zoom events
             const timeDisplay = document.getElementById('time-display');
-            
+
             // Function to format time display
             function formatTime(date) {
                 return date.toLocaleString('en-AU', {
@@ -113,14 +117,14 @@
                     timeZoneName: 'short'
                 });
             }
-            
+
             controller.on('load', () => {
                 // animation timeline
                 controller.timeline.autoplay = true;
                 controller.timeline.delay = 0;
                 controller.timeline.duration = 6;
                 controller.timeline.endDelay = 0;
-      
+
                 // weather layers
                 controller.addWeatherLayer('radar', {
                     data: {
@@ -137,7 +141,7 @@
 
                 // Start timeline
                 controller.timeline.play();
-      
+
                 // Initial time display
                 const initialTime = controller.timeline.currentDate || controller.timeline.startDate;
                 if (initialTime) {
@@ -145,9 +149,127 @@
                 }
             });
 
-   
+            function logMapLayers() {
+                const style = map.getStyle();
+                console.log('Map style:', style.name);
+                console.log('Layers:', style.layers.map(layer => ({
+                    id: layer.id,
+                    type: layer.type,
+                    source: layer.source,
+                    'source-layer': layer['source-layer']
+                })));
+            }
+
+
+            map.on('load', () => {
+
+                logMapLayers();
+                // Load the WA suburbs GeoJSON
+                loadAndDisplayGeoJSON('./geojson/suburb-10-wa.geojson', 'wa-suburbs');
+
+                // You can add more layers like this:
+                // loadAndDisplayGeoJSON('./geojson/another-file.geojson', 'another-layer');
+            });
+
+            async function loadAndDisplayGeoJSON(url, layerId) {
+                try {
+                    console.log(`Loading GeoJSON from ${url}...`);
+                    const response = await fetch(url);
+                    const geojson = await response.json();
+                    console.log(`Loaded GeoJSON with ${geojson.features.length} features`);
+
+                    // Log the first feature's properties to verify the data
+                    if (geojson.features.length > 0) {
+                        console.log('Sample feature properties:', geojson.features[0].properties);
+                    }
+
+                    // Add the GeoJSON as a source
+                    if (map.getSource(layerId)) {
+                        map.getSource(layerId).setData(geojson);
+                        console.log(`Updated source: ${layerId}`);
+                    } else {
+                        console.log(`Adding new source: ${layerId}`);
+                        map.addSource(layerId, {
+                            type: 'geojson',
+                            data: geojson
+                        });
+
+                        // Add fill layer
+                        map.addLayer({
+                            'id': `${layerId}-fill`,
+                            'type': 'fill',
+                            'source': layerId,
+                            'paint': {
+                                'fill-color': '#f9f9f9',
+                                'fill-opacity': 0.1
+                            }
+                        });
+
+                        // Add labels layer first (will be under the outline)
+                        map.addLayer({
+                            'id': `${layerId}-labels`,
+                            'type': 'symbol',
+                            'source': layerId,
+                            'minzoom': 8,  // Lowered from 6 to show labels earlier
+                            'layout': {
+                                'text-field': [
+                                    'case',
+                                    ['has', 'act_loca_2'],  // Check for ACT property
+                                    ['get', 'act_loca_2'],   // Use ACT property if exists
+                                    ['get', 'wa_local_2']   // Fall back to WA property
+                                ],
+                                'text-size': ['interpolate', ['linear'], ['zoom'],
+                                    4, 6,  // Smaller text at lower zoom levels
+                                    8, 12,   // Normal size at zoom 8+
+                                    10, 12   // Slightly larger at highest zoom
+                                ],
+                                'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
+                                'text-justify': 'center',
+                                'text-allow-overlap': true,
+                                'visibility': 'visible',
+                                'symbol-placement': 'point',
+                                'symbol-sort-key': 1000,
+                                'text-offset': [0, 0.5]
+                            },
+                            'paint': {
+                                'text-color': '#ffffff',
+                                'text-opacity': 1,
+                                'text-halo-blur': 1
+                            }
+                        }, 'place_other');
+
+                        // Add outline layer
+                        map.addLayer({
+                            'id': `${layerId}-outline`,
+                            'type': 'line',
+                            'source': layerId,
+                            'paint': {
+                                'line-color': '#efefef',
+                                'line-width': 0.5,
+                                'line-opacity': 0.5
+                            }
+                        }, `${layerId}-labels`); // Insert after labels layer
+
+                        console.log('All layers added');
+                    }
+
+                    // Log the current zoom level and bounds
+                    console.log('Current zoom:', map.getZoom());
+                    console.log('Current bounds:', map.getBounds());
+
+                    // Force a re-render
+                    map.triggerRepaint();
+
+                } catch (error) {
+                    console.error(`Error loading ${url}:`, error);
+                }
+            }
+
+
         });
+
     </script>
- 
+
 </body>
+
 </html>

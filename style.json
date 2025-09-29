@@ -25,10 +25,6 @@
     "openmaptiles": {
       "type": "vector",
       "url": "https://tiles.higginsstormchasing.com/data/openmaptiles.json"
-    },
-    "localities": {
-      "type": "geojson",
-      "data": "./geojson/australian-suburbs.geojson"
     }
   },
   "sprite": "https://tiles.higginsstormchasing.com/styles/dark-matter/sprite",
@@ -65,24 +61,6 @@
       "paint": {
         "fill-antialias": false,
         "fill-color": "rgb(27 ,27 ,29)"
-      }
-    },
-    {
-      "id": "localities-fill",
-      "type": "fill",
-      "source": "localities",
-      "paint": {
-        "fill-color": "#e6e6fa",
-        "fill-opacity": 0.1
-      }
-    },
-    {
-      "id": "localities-outline",
-      "type": "line",
-      "source": "localities",
-      "paint": {
-        "line-color": "#e6e6fa",
-        "line-width": 0.5
       }
     },
     {
@@ -1587,7 +1565,7 @@
         "visibility": "visible"
       },
       "paint": {
-        "text-color": "rgb(101,101,101)",
+        "text-color": "rgb(255,255,255)",
         "text-halo-blur": 1,
         "text-halo-color": "rgba(0,0,0,0.7)",
         "text-halo-width": 1
@@ -1634,7 +1612,7 @@
       },
       "paint": {
         "icon-opacity": 0.7,
-        "text-color": "rgb(101,101,101)",
+        "text-color": "rgb(255,255,255)",
         "text-halo-blur": 1,
         "text-halo-color": "rgba(0,0,0,0.7)",
         "text-halo-width": 1
@@ -1706,7 +1684,7 @@
       },
       "paint": {
         "icon-opacity": 0.7,
-        "text-color": "rgb(101,101,101)",
+        "text-color": "rgb(255,255,255)",
         "text-halo-blur": 1,
         "text-halo-color": "rgba(0,0,0,0.7)",
         "text-halo-width": 1
@@ -2077,7 +2055,7 @@
         "visibility": "visible"
       },
       "paint": {
-        "text-color": "rgb(101,101,101)",
+        "text-color": "rgb(255,255,255)",
         "text-halo-color": "rgba(0,0,0,0.7)",
         "text-halo-width": 1.4
       }
