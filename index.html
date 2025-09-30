@@ -165,7 +165,7 @@
 
                 logMapLayers();
                 // Load the WA suburbs GeoJSON
-                loadAndDisplayGeoJSON('./geojson/suburb-10-wa.geojson', 'wa-suburbs');
+                loadAndDisplayGeoJSON('./geojson/australian-suburbs.geojson', 'wa-suburbs');
 
                 // You can add more layers like this:
                 // loadAndDisplayGeoJSON('./geojson/another-file.geojson', 'another-layer');
@@ -195,15 +195,15 @@
                         });
 
                         // Add fill layer
-                        map.addLayer({
-                            'id': `${layerId}-fill`,
-                            'type': 'fill',
-                            'source': layerId,
-                            'paint': {
-                                'fill-color': '#f9f9f9',
-                                'fill-opacity': 0.1
-                            }
-                        });
+                        // map.addLayer({
+                        //     'id': `${layerId}-fill`,
+                        //     'type': 'fill',
+                        //     'source': layerId,
+                        //     'paint': {
+                        //         'fill-color': '#f9f9f9',
+                        //         'fill-opacity': 0
+                        //     }
+                        // });
 
                         // Add labels layer first (will be under the outline)
                         map.addLayer({
@@ -220,8 +220,8 @@
                                 ],
                                 'text-size': ['interpolate', ['linear'], ['zoom'],
                                     4, 6,  // Smaller text at lower zoom levels
-                                    8, 12,   // Normal size at zoom 8+
-                                    10, 12   // Slightly larger at highest zoom
+                                    6, 8,   // Normal size at zoom 8+
+                                    8, 10   // Slightly larger at highest zoom
                                 ],
                                 'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
                                 'text-justify': 'center',
@@ -244,9 +244,9 @@
                             'type': 'line',
                             'source': layerId,
                             'paint': {
-                                'line-color': '#efefef',
+                                'line-color': '#ffffff',
                                 'line-width': 0.5,
-                                'line-opacity': 0.5
+                                'line-opacity': 0.1
                             }
                         }, `${layerId}-labels`); // Insert after labels layer
 
