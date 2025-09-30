@@ -163,6 +163,8 @@
 
             map.on('load', () => {
 
+                map.addControl(new maplibregl.NavigationControl());
+
                 logMapLayers();
                 // Load the WA suburbs GeoJSON
                 loadAndDisplayGeoJSON('./geojson/australian-suburbs.geojson', 'wa-suburbs');
