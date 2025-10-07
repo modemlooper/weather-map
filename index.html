@@ -57,7 +57,7 @@
             // Load and use the custom style.json
             let style;
             try {
-                const response = await fetch('./style.json');
+                const response = await fetch('https://tiles.higginsstormchasing.com/styles/dark-matter/style.json');
                 style = await response.json();
             } catch (error) {
                 console.error('Error loading style.json:', error);
@@ -75,7 +75,7 @@
             });
 
             // Set up the MapsGL account
-            const account = new aerisweather.mapsgl.Account('8Mkt4g6km81gXs6tkxbU9', 'FKymBxfkBt5LXctTP50Pls7EfqPp3aQ7Qwbw72hW');
+            const account = new aerisweather.mapsgl.Account('Nri4V3dThfnvdLFB0tDpn', 'BqVg1XQAdYDTB7kl5EKjxjDP9SWNRcoIC457zTdq');
 
             // Create the MapLibre map Controller
             const controller = new aerisweather.mapsgl.MaplibreMapController(map, {
@@ -109,13 +109,19 @@
                 controller.timeline.duration = 6;
                 controller.timeline.endDelay = 0;
 
+                console.log(controller.map.style.stylesheet.layers);
+
+                controller.weatherProvider.getLayerMetadata().then((data) => {
+                    console.log('metadata', data)
+                });
+
                 // weather layers
-                controller.addWeatherLayer('radar', {
+                controller.addWeatherLayer('temperatures', {
                     data: {
                         quality: aerisweather.mapsgl.DataQuality.high,
                         bounds: [[103.34, -47.63], [163.57, -6.67]]
                     }
-                });
+                }, 'boundary_state');
 
                 // controller.addWeatherLayer('alerts-outline', {
                 //     paint: {
@@ -124,7 +130,7 @@
                 // });
 
                 // Start timeline
-                controller.timeline.play();
+                //controller.timeline.play();
 
                 // Initial time display
                 const initialTime = controller.timeline.currentDate || controller.timeline.startDate;
@@ -137,7 +143,7 @@
                 map.addControl(new maplibregl.NavigationControl());
             });
 
-        
+
         });
 
     </script>
